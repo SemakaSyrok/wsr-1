@@ -119,27 +119,12 @@ class ApiController extends Controller
         if(!$request->has('search'))
             return response()->json([], 400);
 
-        preg_match_all('/[a-zA-Z]+/i',$request->search, $name );
-        preg_match('/[0-9]+/i'   ,$request->search, $number );
 
-        if(!$name[0] && !$number)
-            return response('Error', 400);
-
-        if($number) {
-            $users = \App\User::where('phone', 'LIKE', '%'.$number[0].'%');
-        } elseif ($name[0]) {
-            $users = \App\User::where('first_name', 'LIKE', '%'.$name[0][0].'%');
-            $users->where('surname', 'LIKE', '%'.$name[0][0].'%');
-        }
-
-        if($name[0]) {
-            foreach ($name[0] as $n) {
-                $users->orWhere('first_name', 'LIKE', '%'.$n.'%');
-                $users->orWhere('surname', 'LIKE', '%'.$n.'%');
-            }
-        }
-
-        $users = $users->get();
+        $users = \App\User::where('first_name', 'LIKE', "%".$request->search."%")
+            ->orWhere('surname', 'LIKE', "%".$request->search."%")
+            ->orWhere('phone', 'LIKE', "%".$request->search."%")
+            ->where('id', '!=', Auth::id())
+            ->get();
 
 
         return response()->json(['users' => $users], 200);
